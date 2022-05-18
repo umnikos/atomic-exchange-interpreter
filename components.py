@@ -106,6 +106,8 @@ class Enclosure(Component):
             if r:
                 continue
             # halted, time for input
+            if not self.inputs:
+                return False
             will_do = True
             for (c,i) in self.inputs:
                 if not c.tug(i):
@@ -116,6 +118,35 @@ class Enclosure(Component):
             for k in range(len(self.inputs)):
                 (c,i) = self.inputs[k]
                 self.internal_inputs[k].output_queues[0].append(c.pop(i))
+
+class IOEnclosure(Enclosure):
+    def __init__(self, internal_input, internal_output):
+        super().__init__([],1,[internal_input],[internal_output])
+
+    def pop(self,i):
+        print(super().pop(0).items)
+        return None
+
+    def run(self):
+        while True:
+            while self.compute(0):
+                self.pop(0)
+            l = input()
+            if not l:
+                # no more input and nothing to compute without the input
+                return
+            a = Atom()
+            for n in map(int, l.split()):
+                a.append(n)
+            self.internal_inputs[0].output_queues[0].append(a)
+
+
+
+
+
+
+
+
 
 
 
