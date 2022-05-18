@@ -188,6 +188,27 @@ class Zeros(Component):
         self.output_queues[0].append(Atom())
         return True
 
+class Intersection(Component):
+    def __init__(self, primary, secondary):
+        super().__init__([primary, secondary], 1)
+
+    def compute(self,_):
+        (c,i) = self.inputs[0]
+        if c.tug(i):
+            a = c.pop(i)
+            self.output_queues[0].append(a)
+            return True
+        # secondary input could be tugged here or not
+        # I don't think it matters either way
+        return False
+
+    def on_halt_event(self):
+        (c,i) = self.inputs[1]
+        if c.tug(i):
+            a = c.pop(i)
+            self.output_queues[0].append(a)
+            return True
+        return False
 
 
 
