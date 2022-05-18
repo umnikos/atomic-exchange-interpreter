@@ -143,6 +143,34 @@ class IOEnclosure(Enclosure):
                 a.append(n)
             self.internal_inputs[0].output_queues[0].append(a)
 
+class Splitter(Component):
+    def __init__(self, input):
+        super().__init__([input],2)
+
+    def compute(self,_):
+        (c,i) = self.inputs[0]
+        if c.tug(i):
+            a = c.pop(i)
+            self.output_queues[0].append(a)
+            self.output_queues[1].append(a)
+            return True
+        return False
+
+class VoidList:
+    def append(self, x):
+        pass
+
+    def pop(self, x):
+        pass
+
+    def pop(self):
+        pass
+
+class Disposal(Component):
+    def __init__(self, input):
+        super().__init__([input],0)
+        (c,i) = input
+        c.output_queues[i] = VoidList()
 
 
 
