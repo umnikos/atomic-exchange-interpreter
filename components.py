@@ -1,4 +1,5 @@
 from bisect import insort
+from copy import deepcopy
 
 class Atom:
     def __init__(self):
@@ -13,18 +14,27 @@ class Atom:
     def pop_small(self):
         return self.items.pop(0)
 
+    def empty(self):
+        return not bool(self.items)
+
 class Component:
     def __init__(self, inputs, output_count):
         self.inputs = inputs
-        self.output_queues = [[]]*output_count
+        self.output_queues = [[] for _ in range(output_count)]
         self.tugged = False
         self.halt_announcer = None
 
+    def insert_input(self, index, input):
+        if self.inputs[index] == None:
+            self.inputs[index] = input
+        else:
+            1/0
+
     def tug(self, i):
-        if self.tugged:
-            return False
         if self.output_queues[i]:
             return True
+        if self.tugged:
+            return False
         self.tugged = True
         if self.compute(i):
             self.tugged = False
@@ -151,8 +161,9 @@ class Splitter(Component):
         (c,i) = self.inputs[0]
         if c.tug(i):
             a = c.pop(i)
+            b = deepcopy(a)
             self.output_queues[0].append(a)
-            self.output_queues[1].append(a)
+            self.output_queues[1].append(b)
             return True
         return False
 
@@ -225,7 +236,8 @@ class BlackArrow(Component):
         if c.tug(i) and d.tug(j):
             a = c.pop(i)
             b = d.pop(j)
-            b.append(a.pop_small())
+            if not a.empty():
+                b.append(a.pop_small())
             self.output_queues[0].append(a)
             self.output_queues[1].append(b)
             return True
@@ -247,7 +259,8 @@ class WhiteArrow(Component):
         if c.tug(i) and d.tug(j):
             a = c.pop(i)
             b = d.pop(j)
-            b.append(a.pop_big())
+            if not a.empty():
+                b.append(a.pop_big())
             self.output_queues[0].append(a)
             self.output_queues[1].append(b)
             return True
