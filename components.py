@@ -131,7 +131,10 @@ class IOEnclosure(Enclosure):
         while True:
             while self.compute(0):
                 self.pop(0)
-            l = input()
+            try:
+                l = input()
+            except EOFError:
+                l = ''
             if not l:
                 # no more input and nothing to compute without the input
                 return
