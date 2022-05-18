@@ -211,8 +211,13 @@ class Intersection(Component):
         return False
 
 class BlackArrow(Component):
-    def __init__(self, source, dest):
-        super().__init__([source, dest], 2)
+    def __init__(self, source, dest=None):
+        if dest:
+            super().__init__([source, dest], 2)
+        else:
+            z = Zeros()
+            super().__init__([source, (z,0)], 2)
+            Disposal((self,1))
 
     def compute(self,_):
         (c,i) = self.inputs[0]
@@ -228,8 +233,13 @@ class BlackArrow(Component):
 
 # basically the same as BlackArrow but copy-pasting is easier
 class WhiteArrow(Component):
-    def __init__(self, source, dest):
-        super().__init__([source, dest], 2)
+    def __init__(self, source, dest=None):
+        if dest:
+            super().__init__([source, dest], 2)
+        else:
+            z = Zeros()
+            super().__init__([source, (z,0)], 2)
+            Disposal((self,1))
 
     def compute(self,_):
         (c,i) = self.inputs[0]
