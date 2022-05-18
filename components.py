@@ -17,6 +17,9 @@ class Atom:
     def empty(self):
         return not bool(self.items)
 
+    def weight(self):
+        return sum(self.items)
+
 class Component:
     def __init__(self, inputs, output_count):
         self.inputs = inputs
@@ -31,16 +34,19 @@ class Component:
             1/0
 
     def tug(self, i):
-        if self.output_queues[i]:
-            return True
-        if self.tugged:
-            return False
-        self.tugged = True
-        if self.compute(i):
+        while True:
+            if self.output_queues[i]:
+                return True
+            if self.tugged:
+                return False
+            self.tugged = True
+            if self.compute(i):
+                self.tugged = False
+                if self.output_queues[i]:
+                    return True
+                continue
             self.tugged = False
-            return True
-        self.tugged = False
-        return False
+            return False
 
     def on_halt_event(self):
         # intersections are the ones who care about this
@@ -280,6 +286,33 @@ class NumberArrow(Component):
             return True
         return False
 
+class Diamond(Component):
+    # left side is black, right side is white
+    def __init__(self, left, right):
+        super().__init__([left,right],4)
+
+    def compute(self,_):
+        (c,i) = self.inputs[0]
+        (d,j) = self.inputs[1]
+        if c.tug(i) and d.tug(j):
+            a = c.pop(i)
+            b = d.pop(j)
+            aw = a.weight()
+            bw = b.weight()
+            if aw == bw:
+                self.output_queues[2].append(a)
+                self.output_queues[3].append(b)
+            else:
+                if aw < bw:
+                    left = a
+                    right = b
+                else:
+                    left = b
+                    right = a
+                self.output_queues[0].append(left)
+                self.output_queues[1].append(right)
+            return True
+        return False
 
 
 
