@@ -180,6 +180,14 @@ class Zero(Component):
     def compute(self,_):
         return False
 
+class Zeros(Component):
+    def __init__(self):
+        super().__init__([], 1)
+
+    def compute(self,_):
+        self.output_queues[0].append(Atom())
+        return True
+
 
 
 
