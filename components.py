@@ -172,8 +172,13 @@ class Disposal(Component):
         (c,i) = input
         c.output_queues[i] = VoidList()
 
+class Zero(Component):
+    def __init__(self):
+        super().__init__([], 1)
+        self.output_queues[0].append(Atom())
 
-
+    def compute(self,_):
+        return False
 
 
 
