@@ -210,7 +210,52 @@ class Intersection(Component):
             return True
         return False
 
+class BlackArrow(Component):
+    def __init__(self, source, dest):
+        super().__init__([source, dest], 2)
 
+    def compute(self,_):
+        (c,i) = self.inputs[0]
+        (d,j) = self.inputs[1]
+        if c.tug(i) and d.tug(j):
+            a = c.pop(i)
+            b = d.pop(j)
+            b.append(a.pop_small())
+            self.output_queues[0].append(a)
+            self.output_queues[1].append(b)
+            return True
+        return False
+
+# basically the same as BlackArrow but copy-pasting is easier
+class WhiteArrow(Component):
+    def __init__(self, source, dest):
+        super().__init__([source, dest], 2)
+
+    def compute(self,_):
+        (c,i) = self.inputs[0]
+        (d,j) = self.inputs[1]
+        if c.tug(i) and d.tug(j):
+            a = c.pop(i)
+            b = d.pop(j)
+            b.append(a.pop_big())
+            self.output_queues[0].append(a)
+            self.output_queues[1].append(b)
+            return True
+        return False
+
+class NumberArrow(Component):
+    def __init__(self, line, num):
+        super().__init__([line], 1)
+        self.num = num
+
+    def compute(self,_):
+        (c,i) = self.inputs[0]
+        if c.tug(i):
+            a = c.pop(i)
+            a.append(self.num)
+            self.output_queues[0].append(a)
+            return True
+        return False
 
 
 
