@@ -124,16 +124,19 @@ class Enclosure(Component):
             # halted, time for input
             if not self.inputs:
                 return False
-            will_do = True
-            for (c,i) in self.inputs:
-                if not c.tug(i):
-                    will_do = False
-                    break
+            will_do = False
+            for k in range(len(self.inputs)):
+                (c,i) = self.inputs[k]
+                if self.internal_inputs[k].output_queues[0]:
+                    continue
+                if c.tug(i):
+                    will_do = True
             if not will_do:
                 return False
             for k in range(len(self.inputs)):
                 (c,i) = self.inputs[k]
-                self.internal_inputs[k].output_queues[0].append(c.pop(i))
+                if c.tug(i):
+                    self.internal_inputs[k].output_queues[0].append(c.pop(i))
 
 class IOEnclosure(Enclosure):
     def __init__(self, first, second=None):
