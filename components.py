@@ -136,8 +136,13 @@ class Enclosure(Component):
                 self.internal_inputs[k].output_queues[0].append(c.pop(i))
 
 class IOEnclosure(Enclosure):
-    def __init__(self, internal_input, internal_output):
-        super().__init__([],1,[internal_input],[internal_output])
+    def __init__(self, first, second=None):
+        if second:
+            super().__init__([],1,[first],[second])
+            self.skip_input = False
+        else:
+            super().__init__([],1,[],[first])
+            self.skip_input = True
 
     def pop(self,i):
         print(super().pop(0).items)
@@ -147,6 +152,8 @@ class IOEnclosure(Enclosure):
         while True:
             while self.compute(0):
                 self.pop(0)
+            if self.skip_input:
+                return
             try:
                 l = input()
             except EOFError:
@@ -156,7 +163,8 @@ class IOEnclosure(Enclosure):
                 return
             a = Atom()
             for n in map(int, l.split()):
-                a.append(n)
+                if n > 0:
+                    a.append(n)
             self.internal_inputs[0].output_queues[0].append(a)
 
 class Splitter(Component):

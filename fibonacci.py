@@ -1,5 +1,4 @@
 from components import *
-i = Input()
 
 one = NumberArrow((Zero(),0), 1)
 bottom = Intersection(None,(one,0))
@@ -13,5 +12,5 @@ Disposal((arrow,0))
 sum = Sum((arrow,1))
 bottom.insert_input(0,(sum,0))
 
-e = IOEnclosure(i,o)
+e = IOEnclosure(o)
 e.run()
