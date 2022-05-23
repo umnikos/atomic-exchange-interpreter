@@ -27,12 +27,6 @@ class Component:
         self.tugged = False
         self.halt_announcer = None
 
-    def insert_input(self, index, input):
-        if self.inputs[index] == None:
-            self.inputs[index] = input
-        else:
-            1/0
-
     def tug(self, i):
         while True:
             if self.output_queues[i]:
@@ -63,10 +57,21 @@ class Component:
 class Input(Component):
     def __init__(self):
         super().__init__([], 1)
+        self.connected_to = None
 
     def compute(self,_):
-        # enclosures will handle putting things inside the output queue
-        return False
+        if not self.connected_to:
+            # enclosures will handle putting things inside the output queue
+            return False
+        else:
+            (c,i) = self.connected_to
+            return c.tug(i)
+
+    # this isn't used by enclosures, it's for making loops
+    def connect_to_output(self, out):
+        self.connected_to = out
+        (c,i) = out
+        self.output_queues[0] = c.output_queues[i]
 
 class Output(Component):
     def __init__(self, i):

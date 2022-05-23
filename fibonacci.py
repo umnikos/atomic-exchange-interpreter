@@ -2,7 +2,8 @@ from components import *
 
 def fibonacci():
     one = NumberArrow((Zero(),0), 1)
-    bottom = Intersection(None,(one,0))
+    to_loop = Input()
+    bottom = Intersection((to_loop,0),(one,0))
     split = Splitter((bottom,0))
     zero = Zero()
     top = Intersection((split,0),(zero,0))
@@ -11,7 +12,7 @@ def fibonacci():
     arrow = WhiteArrow((split,1),(for_output,0))
     Disposal((arrow,0))
     sum = Sum((arrow,1))
-    bottom.insert_input(0,(sum,0))
+    to_loop.connect_to_output((sum,0))
 
     return Enclosure([],1,[],[o])
 
