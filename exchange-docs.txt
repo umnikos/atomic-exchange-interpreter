@@ -178,14 +178,13 @@ Procedures:
 You can abstract a program into a singular block, with input on top or left and output on the right or bottom. The rules for executing it are the same as those for enclosures. Here is a program that subtracts 2 from input which uses the subtraction program from earlier:
         Example:
 
-          _
-          U
-          |
-       /--+--\
-   \2/ |  |  |   _____
- >-----+--->-+---|sub|--\
-       |     |   -----  |
-       \-----/          U
+  _
+  U
+  |
+  | \2/  _____
+  \------|sub|--\
+         -----  |
+                U
 
 
 
