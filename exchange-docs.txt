@@ -1,0 +1,212 @@
+This document is slightly wrong at places, better documentation pending!
+
+
+Exchange is a programming language in which atoms traverse lines and exchange numbers.
+
+Atoms:
+Atoms are unordered lists of positive integers (1, 2, 3, etc.). You can create a constant stream of new empty atoms with a >> symbol at the beginning of a line, or a single empty atom with a > symbol at the beginning of the line. You can also destroy atoms with a > symbol at the end of a line.
+        Example:
+>----------->
+Here an empty atom is created and then immediately destroyed.
+
+
+Numbers in atoms:                                                     __
+Atoms can receive, discard or exchange numbers. This is done with the \/ symbol. The positioning and contents of the symbol matters to determine its function.
+
+Inserting numbers into atoms:
+To insert a number into an atom, you just point a white arrow into the line it will travel with the number inside the arrow.
+        Example:
+        ___
+        \3/
+>---------------->
+Here, an empty atom is created, the number 3 is inserted (so the atom contains just the number 3) and then it's destroyed.
+
+Removing numbers from atoms:
+Atoms can give away numbers from their collection of numbers. This can be done with either a black or a white arrow pointing away from the line. The difference between a black and a white arrow is that a black arrow will take the smallest number from the atom, and a white line will take the largest number from the atom.
+        Example:
+
+    \1/ \2/ \3/ \3/     /b\ /w\ /b\
+>------------------------------------->
+In this example, an empty atom is created and then receives the numbers 1, 2, 3, and 3. The first black arrow takes away the smallest number, 1. So the atom at this point contains the numbers 2, 3, and 3. Then the white arrow takes away the largest number, 3. Since all 3's are equal, it doesn't matter which 3 it takes. The atom now contains the numbers 2 and 3. The final black arrow takes away the now smallest number, the 2. The atom, now containing just a 3, is then destroyed at the end of the line.
+If the atom is empty when trying to take from it nothing is removed and it just continues onward.
+
+Exchanging numbers between atoms:
+
+If you put a black or white arrow between two lines, atoms can give one another numbers. The rules are very similar - a black arrow will make the atom at its base give off its smallest number to the other atom and a white arrow will make the atom at the arrow's base give off its largest number to the other atom. Atoms also wait for each other, so if an atom comes to one of these exchange arrows it won't continue until an atom comes at the other side.
+        Example:
+      ___ ___ ___ ___
+      \1/ \2/ \3/ \3/
+>--------------------------------->
+                         \b/ \w/
+>--------------------------------->
+In this example, two empty atoms are created, the first being given the numbers 1, 2, 3, and 3. Then the \b/ arrow takes the smallest number from the first atom (1) and gives it to the second atom. Then the second one takes the biggest number from the first atom (a 3 - doesn't matter which 3) and gives it to the second atom as well. Then both atoms are destroyed.
+
+
+Input and output:
+Input and output of the program are marked with a U. Input is taken in the form of atoms. There can only be at most one input and exactly one output.
+        Example:
+    _
+    U
+    |
+    \______
+     /1\   \
+           |
+           U
+Here, input is taken, the number 1 is inserted into it, and is outputted. This repeats for as long as there is pending input.
+
+
+Lines:
+Lines are the things atoms travel through. Lines are one-directional (direction determined by the things they're connected to). Lines can contain diversions and/or intersections.
+
+Diversions:
+Diversions are places where, when an atom comes, it gets cloned and one copy of each atom goes in each path. The line must split gradually, with no sharp turns, in order to indicate from which end atoms come from.
+        Example:
+>--------------------------->
+         /1\     \
+                  |
+                  \/
+Here, an empty atom is created and the number 1 is inserted into it. Then it splits at the diversion, and two atoms each containing the number 1 travel along each path. Then they both get destroyed at the end of the paths.
+
+Intersections and halt events:
+Intersections are places where two lines join into one. Each intersection has 3 parts - an exit, a main entrance, and a side entrance. When an atom comes into the intersection from the main entrace, it immediately passes through the intersection into the exit without stopping (like if the intersection wasn't even there). But when an atom comes from the side entrance, it stops and waits until there is a halt event. A halt event is a global signal that occurs when there is no more to be made without the use of side entrances from intersections. When this happens, a single atom from each intersection that has an atom waiting on its side entrance passes through the intersection and execution continues.
+        Example:
+
+        \3/
+      >---------->----------- ...
+                |
+           >>---/
+Here, the exit is marked with a > and the side entrance is put perpendicular to the exit. First a single atom with a 3 in it comes through the intersection and goes to the rest of the program. After that every time when the program triggers a halt event, an empty atom waiting at the intersection passes through it and also goes to the rest of the program.
+
+
+Addition / Combining numbers:
+Atoms can store several numbers, but you may want to add those numbers together to make a single number. Here comes the circle operator. When an atom passes through it, all of the numbers contained in it get added together and are stored as a single number.
+        Example:
+   ___ ___ ___
+   \2/ \3/ \1/
+>--------------o----->
+Here, we have an empty atom, which receives the numbers 1, 2 and 3. Then it passes through the o operator and those get added up to 6. (The atom at this point contains just the number 6, the other numbers get removed). The atom is then destroyed.
+
+
+Comparisons:
+The comparison operator is what enables flow control and conditionals. The comparison operator is drawn as a diamond with one of its sides drawn black (usually the left one) and the other side drawn white. Two atoms enter the diamond from the top left and top right side (waiting for each other). Then, the sums of the numbers in the atoms are compared. If one sum is bigger than the other, the atom with the bigger sum exits through the corner of the white side (if the white side is on the right, that's the right corner) and the other atom exits through the opposite corner. If their sums are equal however, they each exit through their corresponding side on the bottom of the diamond (the atom that entered through the top left side exits through the bottom left side and the atom that entered through the top right side exits through the bottom right side). If there's no exiting line from an exiting side of the diamond, the atoms that come through that side are automatically discarded.
+        Example - splitter:
+
+           \/        /-----------<
+           |         |      /97\
+         /-->-\    /<---\
+         | ___ \/\/     |
+         | \1/ /  \     |
+         \----<b  w>----/
+               \  /
+               /\/
+              /
+              |
+              U
+
+In this program, an atom is inputted into the program and is compared against an empty atom. If the sum of its numbers is bigger than 0, the empty atom receives the number 1 and then both atoms are compared again. This is repeated until the sums of both atoms become equal, at which point the (previously) empty atom that's now full of 1s is returned.
+
+Enclosures:
+A halt event occurs when atoms stop moving. It is the only time the joining intersection decides to let atoms from the secondary entrance exit. A halt event is not to be confused with halting, the program only halts once a halting event is triggered and none of the joining intersections can produce an output.
+It is possible to create enclosures of code that have their own halt events that apply only to the code inside the enclosure. An enclosure is visualised as a loop with no elements on it, enclosing a part of a program. If the code inside the enclosure halts that doesn't mean the entire program has halted.
+        Example:
+
+ _ /---------\
+ U |     \1/ |
+ \-|---o-----|-->
+   |         |
+   \---------/
+
+Enclosures can contain code that infinitely loops without the entire program getting stuck in the infinite loop. That can be achieved by an intepreter by lazily evaluating the enclosures only when an output from it is needed. An enclosure only requests an input once it has halted.
+
+Here is a program that swaps pairs of atoms from the input using two enclosures:
+
+                    /----------------\
+                    |                |
+       _   <--------+----<--------<  |
+       U     \/     |  /   |  /1\    |
+       \--------\   |  |   ^         |
+           \    |   |  \---|         |
+            \/\ /   |      ^         |
+            /  \    \----------------/
+        /--<b  w>
+        |   \  /
+        |   /\/
+        |  |
+     /--+--+--\
+     |  |  |  |
+     |  \--|  |
+     |     v  |
+     |     |  |
+     \-----+--/
+           |
+           U
+
+Here is >> done using > and an enclosure:
+
+  /---------\
+  |         |
+  | >--->---+------ ...
+  |    |  \ |
+  |    |  | |
+  |    \--/ |
+  |         |
+  \---------/
+
+When an enclosure's output is the secondary entrance to an intersection and a halting event is about to occur, the enclosure executes and if an output can be produced it is passed through as part of the halting event. The enclosure may request input by halting during that process.
+
+
+
+        Example - subtraction:
+
+    _
+    U
+    |
+    \----------------\
+       \b/ /--\      |
+    >>-----|   \/\/-<--\
+           |   /  \    |
+           \--<b  w>---/
+           /1\ \  /
+               /\/
+               |
+       /-o-----/
+       |   \w/
+       U
+
+
+Procedures:
+You can abstract a program into a singular block, with input on top or left and output on the right or bottom. The rules for executing it are the same as those for enclosures. Here is a program that subtracts 2 from input which uses the subtraction program from earlier:
+        Example:
+
+          _
+          U
+          |
+       /--+--\
+   \2/ |  |  |   _____
+ >-----+--->-+---|sub|--\
+       |     |   -----  |
+       \-----/          U
+
+
+
+
+
+        Example - fibonacci:
+
+              /---------o--\
+              ^    /w\     |
+    >---------|  /----->   |
+              | /         /|
+              |/         / |
+              |          | |
+              ^          U |
+    >---------|            |
+        /1\   \------------/
+
+
+
+
+
+
+
+
