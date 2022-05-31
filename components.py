@@ -26,6 +26,9 @@ class OutputQueue:
         self.i = i
         self.queue = []
 
+    def component(self):
+        return self.parent
+
     def tug(self):
         return self.parent.tug(self.i)
 
@@ -43,7 +46,7 @@ class OutputQueue:
 
 
 class Component:
-    def __init__(self, inputs, output_count):
+    def __init__(self, inputs: list[OutputQueue], output_count: int):
         self.inputs = inputs
         self.output_queues = [OutputQueue(self, i) for i in range(output_count)]
         self.tugged = False
@@ -51,6 +54,10 @@ class Component:
 
     def __iter__(self):
         return iter(self.output_queues)
+
+    # if this is baffling look at the same method for OutputQueue
+    def component(self):
+        return self
 
     def tug(self, i):
         while True:
@@ -74,7 +81,7 @@ class Component:
 
     def compute(self,_):
         # child components will implement this
-        return 1/0
+        assert False, "Unimplemented compute() method of Component"
 
     def pop(self, i):
         return self.output_queues[i].pop(0)
@@ -82,41 +89,34 @@ class Component:
 class Input(Component):
     def __init__(self):
         super().__init__([], 1)
-        self.connected_to = None
 
     def compute(self,_):
-        if not self.connected_to:
-            # enclosures will handle putting things inside the output queue
-            return False
-        else:
-            (c,i) = self.connected_to
-            return c.tug(i)
+        # enclosures will handle putting things inside the output queue
+        return False
 
     # this isn't used by enclosures, it's for making loops
-    def connect_to_output(self, out):
-        self.connected_to = out
-        (c,i) = out
-        self.output_queues[0] = c.output_queues[i]
+    def connect_to_output(self, out: OutputQueue):
+        self.output_queues[0] = out
 
 class Output(Component):
-    def __init__(self, i):
+    def __init__(self, i: OutputQueue):
         super().__init__([i],1)
 
     def compute(self,_):
-        (c,i) = self.inputs[0]
-        if c.tug(i):
-            self.output_queues[0].append(c.pop(i))
+        c = self.inputs[0]
+        if c.tug():
+            self.output_queues[0].append(c.pop())
             return True
         return False
 
 class Sum(Component):
-    def __init__(self, i):
+    def __init__(self, i: OutputQueue):
         super().__init__([i],1)
 
     def compute(self,_):
-        (c,i) = self.inputs[0]
-        if c.tug(i):
-            a = c.pop(i)
+        c = self.inputs[0]
+        if c.tug():
+            a = c.pop()
             a.items = [sum(a.items)]
             self.output_queues[0].append(a)
             return True
@@ -125,9 +125,9 @@ class Sum(Component):
 class Enclosure(Component):
     def update_halt_announce_list(self, o):
         self.halt_announce_list.append(o)
-        for (c,i) in o.inputs:
-            if c not in self.halt_announce_list:
-                self.update_halt_announce_list(c)
+        for q in o.inputs:
+            if q.component() not in self.halt_announce_list:
+                self.update_halt_announce_list(q.component())
 
     def announce_halt_event(self):
         r = False
@@ -135,10 +135,10 @@ class Enclosure(Component):
             r = c.on_halt_event() or r
         return r
 
-    def __init__(self, inputs, output_count, internal_inputs, internal_outputs):
+    def __init__(self, inputs: list[OutputQueue], output_count: int, internal_inputs: list[Component], internal_outputs: list[Component]):
         super().__init__(inputs, output_count)
-        self.internal_inputs = internal_inputs
-        self.internal_outputs = internal_outputs
+        self.internal_inputs = [x.component() for x in internal_inputs]
+        self.internal_outputs = [x.component() for x in internal_outputs]
         self.halt_announce_list = []
         for o in self.internal_outputs:
             self.update_halt_announce_list(o)
@@ -156,21 +156,20 @@ class Enclosure(Component):
                 return False
             will_do = False
             for k in range(len(self.inputs)):
-                (c,i) = self.inputs[k]
                 if self.internal_inputs[k].output_queues[0]:
                     continue
-                if c.tug(i):
+                if self.inputs[k].tug():
                     will_do = True
             if not will_do:
                 return False
             for k in range(len(self.inputs)):
-                (c,i) = self.inputs[k]
-                if c.tug(i):
-                    self.internal_inputs[k].output_queues[0].append(c.pop(i))
+                q = self.inputs[k]
+                if q.tug():
+                    self.internal_inputs[k].output_queues[0].append(q.pop())
 
 class IOEnclosure(Enclosure):
     def __init__(self, first, second=None):
-        if second:
+        if second != None:
             super().__init__([],1,[first],[second])
             self.skip_input = False
         else:
@@ -179,7 +178,6 @@ class IOEnclosure(Enclosure):
 
     def pop(self,i):
         print(super().pop(0).items)
-        return None
 
     def run(self):
         while True:
@@ -205,9 +203,9 @@ class Splitter(Component):
         super().__init__([input],2)
 
     def compute(self,_):
-        (c,i) = self.inputs[0]
-        if c.tug(i):
-            a = c.pop(i)
+        q = self.inputs[0]
+        if q.tug():
+            a = q.pop()
             b = deepcopy(a)
             self.output_queues[0].append(a)
             self.output_queues[1].append(b)
@@ -227,8 +225,9 @@ class VoidList:
 class Disposal(Component):
     def __init__(self, input):
         super().__init__([input],0)
-        (c,i) = input
-        c.output_queues[i] = VoidList()
+        input.queue = VoidList()
+
+### DONE TO HERE ###
 
 class Zero(Component):
     def __init__(self):
