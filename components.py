@@ -20,12 +20,37 @@ class Atom:
     def weight(self):
         return sum(self.items)
 
+class OutputQueue:
+    def __init__(self, parent, i):
+        self.parent = parent
+        self.i = i
+        self.queue = []
+
+    def tug(self):
+        return self.parent.tug(self.i)
+
+    def __bool__(self):
+        return bool(self.queue)
+
+    def pop(self, p=0):
+        return self.queue.pop(p)
+
+    def append(self, a):
+        return self.queue.append(a)
+
+    def push(self, a):
+        return self.append(a)
+
+
 class Component:
     def __init__(self, inputs, output_count):
         self.inputs = inputs
-        self.output_queues = [[] for _ in range(output_count)]
+        self.output_queues = [OutputQueue(self, i) for i in range(output_count)]
         self.tugged = False
         self.halt_announcer = None
+
+    def __iter__(self):
+        return iter(self.output_queues)
 
     def tug(self, i):
         while True:
