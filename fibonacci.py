@@ -1,17 +1,19 @@
 from components import *
 
 def fibonacci():
-    z, = Zero()
-    one, = NumberArrow(z, 1)
+    one, = NumberArrow(*Zero(), 1)
     to_loop, = Input()
     bottom, = Intersection(to_loop,one)
+
     split,middle = Splitter(bottom)
-    zero, = Zero()
-    top, = Intersection(split,zero)
+    top, = Intersection(middle,*Zero())
+
     for_output,the_rest = Splitter(top)
     o, = Output(for_output)
-    trash,arrow = WhiteArrow(middle,the_rest)
+
+    trash,arrow = WhiteArrow(split,the_rest)
     Disposal(trash)
+
     sum, = Sum(arrow)
     to_loop.connect_to_output(sum)
 
@@ -20,6 +22,5 @@ def fibonacci():
 if __name__ == "__main__":
     f, = fibonacci()
     o, = Output(f)
-    e = IOEnclosure(o)
-    e.run()
+    IOEnclosure(o).run()
 
