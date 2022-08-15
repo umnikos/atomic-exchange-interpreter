@@ -56,6 +56,7 @@ class OutputQueue:
 
 class Component:
     def __init__(self, inputs: list[OutputQueue], output_count: int):
+        assert all(map(lambda x: type(x) == OutputQueue, inputs)), "Trying to output to non-OutputQueue"
         self.inputs = inputs
         self.output_queues = [OutputQueue(self, i) for i in range(output_count)]
         self.tugged = False
