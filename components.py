@@ -35,8 +35,8 @@ class OutputQueue:
     def __bool__(self):
         return bool(self.queue)
 
-    def pop(self, p=0):
-        return self.queue.pop(p)
+    def pop(self):
+        return self.queue.pop(0)
 
     def append(self, a):
         return self.queue.append(a)
@@ -84,7 +84,7 @@ class Component:
         assert False, "Unimplemented compute() method of Component"
 
     def pop(self, i):
-        return self.output_queues[i].pop(0)
+        return self.output_queues[i].pop()
 
 class Input(Component):
     def __init__(self):
@@ -213,21 +213,19 @@ class Splitter(Component):
         return False
 
 class VoidList:
-    def append(self, x):
+    def append(self, x=None):
         pass
 
-    def pop(self, x):
+    def pop(self, x=None):
         pass
 
-    def pop(self):
+    def pop(self, x=None):
         pass
 
 class Disposal(Component):
     def __init__(self, input):
         super().__init__([input],0)
         input.queue = VoidList()
-
-### DONE TO HERE ###
 
 class Zero(Component):
     def __init__(self):
@@ -246,13 +244,13 @@ class Zeros(Component):
         return True
 
 class Intersection(Component):
-    def __init__(self, primary, secondary):
+    def __init__(self, primary: OutputQueue, secondary: OutputQueue):
         super().__init__([primary, secondary], 1)
 
     def compute(self,_):
-        (c,i) = self.inputs[0]
-        if c.tug(i):
-            a = c.pop(i)
+        c = self.inputs[0]
+        if c.tug():
+            a = c.pop()
             self.output_queues[0].append(a)
             return True
         # secondary input could be tugged here or not
@@ -260,67 +258,52 @@ class Intersection(Component):
         return False
 
     def on_halt_event(self):
-        (c,i) = self.inputs[1]
-        if c.tug(i):
-            a = c.pop(i)
+        c = self.inputs[1]
+        if c.tug():
+            a = c.pop()
             self.output_queues[0].append(a)
             return True
         return False
 
 class BlackArrow(Component):
-    def __init__(self, source, dest=None):
-        if dest:
+    def __init__(self, source: OutputQueue, dest=None):
+        if dest != None:
             super().__init__([source, dest], 2)
         else:
-            z = Zeros()
-            super().__init__([source, (z,0)], 2)
-            Disposal((self,1))
+            z, = Zeros()
+            super().__init__([source, z], 2)
+            Disposal(self.output_queues[1])
+
+    def handle_atoms(self, a, b):
+        if not a.empty():
+            b.append(a.pop_small())
 
     def compute(self,_):
-        (c,i) = self.inputs[0]
-        (d,j) = self.inputs[1]
-        if c.tug(i) and d.tug(j):
-            a = c.pop(i)
-            b = d.pop(j)
-            if not a.empty():
-                b.append(a.pop_small())
+        c = self.inputs[0]
+        d = self.inputs[1]
+        if c.tug() and d.tug():
+            a = c.pop()
+            b = d.pop()
+            self.handle_atoms(a,b)
             self.output_queues[0].append(a)
             self.output_queues[1].append(b)
             return True
         return False
 
-# basically the same as BlackArrow but copy-pasting is easier
-class WhiteArrow(Component):
-    def __init__(self, source, dest=None):
-        if dest:
-            super().__init__([source, dest], 2)
-        else:
-            z = Zeros()
-            super().__init__([source, (z,0)], 2)
-            Disposal((self,1))
-
-    def compute(self,_):
-        (c,i) = self.inputs[0]
-        (d,j) = self.inputs[1]
-        if c.tug(i) and d.tug(j):
-            a = c.pop(i)
-            b = d.pop(j)
-            if not a.empty():
-                b.append(a.pop_big())
-            self.output_queues[0].append(a)
-            self.output_queues[1].append(b)
-            return True
-        return False
+class WhiteArrow(BlackArrow):
+    def handle_atoms(self, a, b):
+        if not a.empty():
+            b.append(a.pop_big())
 
 class NumberArrow(Component):
-    def __init__(self, line, num):
+    def __init__(self, line: OutputQueue, num):
         super().__init__([line], 1)
         self.num = num
 
     def compute(self,_):
-        (c,i) = self.inputs[0]
-        if c.tug(i):
-            a = c.pop(i)
+        c = self.inputs[0]
+        if c.tug():
+            a = c.pop()
             a.append(self.num)
             self.output_queues[0].append(a)
             return True
@@ -328,15 +311,15 @@ class NumberArrow(Component):
 
 class Diamond(Component):
     # left side is black, right side is white
-    def __init__(self, left, right):
+    def __init__(self, left: OutputQueue, right: OutputQueue):
         super().__init__([left,right],4)
 
     def compute(self,_):
-        (c,i) = self.inputs[0]
-        (d,j) = self.inputs[1]
-        if c.tug(i) and d.tug(j):
-            a = c.pop(i)
-            b = d.pop(j)
+        c = self.inputs[0]
+        d = self.inputs[1]
+        if c.tug() and d.tug():
+            a = c.pop()
+            b = d.pop()
             aw = a.weight()
             bw = b.weight()
             if aw == bw:
