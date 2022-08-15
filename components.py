@@ -49,6 +49,9 @@ class OutputQueue:
         if type(self.parent) == Input:
             self.queue = out.queue
             self.parent = out.parent
+            self.i = out.i
+        else:
+            assert False, f"Cannot connect {out} to {self.parent}: Not an Input"
 
 
 class Component:
