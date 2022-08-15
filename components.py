@@ -44,6 +44,12 @@ class OutputQueue:
     def push(self, a):
         return self.append(a)
 
+    # this is used for making loops
+    def connect_to_output(self, out):
+        if self.parent == None:
+            self.queue = out.queue
+            self.parent = out.parent
+
 
 class Component:
     def __init__(self, inputs: list[OutputQueue], output_count: int):
@@ -89,14 +95,11 @@ class Component:
 class Input(Component):
     def __init__(self):
         super().__init__([], 1)
+        self.output_queues[0].parent = None # allows to be connected to something else
 
     def compute(self,_):
         # enclosures will handle putting things inside the output queue
         return False
-
-    # this isn't used by enclosures, it's for making loops
-    def connect_to_output(self, out: OutputQueue):
-        self.output_queues[0] = out
 
 class Output(Component):
     def __init__(self, i: OutputQueue):
