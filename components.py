@@ -1,6 +1,11 @@
 from bisect import insort
 from copy import deepcopy
 
+# TODO - add checking on Enclosure and IOEnclosure if things are really Inputs and Outputs
+# TODO - check if two things are trying to connect to the same OutputQueue and throw error
+    # TODO - use that boolean to call Disposal() discretely when an Enclosure is formed
+# TODO - guard against stackoverflow when tug()-ing too much
+
 class Atom:
     def __init__(self):
         self.items = []
