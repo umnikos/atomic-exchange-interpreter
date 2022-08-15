@@ -46,7 +46,7 @@ class OutputQueue:
 
     # this is used for making loops
     def connect_to_output(self, out):
-        if self.parent == None:
+        if type(self.parent) == Input:
             self.queue = out.queue
             self.parent = out.parent
 
@@ -95,7 +95,6 @@ class Component:
 class Input(Component):
     def __init__(self):
         super().__init__([], 1)
-        self.output_queues[0].parent = None # allows to be connected to something else
 
     def compute(self,_):
         # enclosures will handle putting things inside the output queue
@@ -274,8 +273,7 @@ class BlackArrow(Component):
             super().__init__([source, dest], 2)
         else:
             z, = Zeros()
-            super().__init__([source, z], 2)
-            Disposal(self.output_queues[1])
+            super().__init__([source, z], 1)
 
     def handle_atoms(self, a, b):
         if not a.empty():
@@ -289,7 +287,10 @@ class BlackArrow(Component):
             b = d.pop()
             self.handle_atoms(a,b)
             self.output_queues[0].append(a)
-            self.output_queues[1].append(b)
+            try:
+                self.output_queues[1].append(b)
+            except IndexError:
+                pass
             return True
         return False
 
