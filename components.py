@@ -64,7 +64,7 @@ class Component:
         assert all(map(lambda x: type(x) == OutputQueue, inputs)), "Trying to output to non-OutputQueue"
         self.inputs = inputs
         self.output_queues = [OutputQueue(self, i) for i in range(output_count)]
-        self.tugged = False
+        self.tugged = [False] * output_count
         self.halt_announcer = None
 
     def __iter__(self):
@@ -78,15 +78,15 @@ class Component:
         while True:
             if self.output_queues[i]:
                 return True
-            if self.tugged:
+            if self.tugged[i]:
                 return False
-            self.tugged = True
+            self.tugged[i] = True
             if self.compute(i):
-                self.tugged = False
+                self.tugged[i] = False
                 if self.output_queues[i]:
                     return True
                 continue
-            self.tugged = False
+            self.tugged[i] = False
             return False
 
     def on_halt_event(self):
@@ -130,6 +130,24 @@ class Sum(Component):
             a = c.pop()
             a.items = [sum(a.items)]
             self.output_queues[0].append(a)
+            return True
+        return False
+
+# purely for debugging
+class Trace(Component):
+    def __init__(self, i: OutputQueue, message=None):
+        super().__init__([i],1)
+        if message:
+            self.message = message + ": "
+        else:
+            self.message = ""
+
+    def compute(self,_):
+        c = self.inputs[0]
+        if c.tug():
+            a = c.pop()
+            self.output_queues[0].append(a)
+            print(self.message + str(a.items))
             return True
         return False
 
