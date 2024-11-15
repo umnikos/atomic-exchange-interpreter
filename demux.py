@@ -1,5 +1,8 @@
 from components import *
 
+# cond controls where atoms from line go
+# they go to the first output if cond>0
+# they go to the second line if cond==0
 def demux(line, cond):
     a, = Input()
     b, = Input()

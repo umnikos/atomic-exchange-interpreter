@@ -1,6 +1,7 @@
 from components import *
 from sync import sync
 
+# decompose [N] into a list N 1s
 def split(ii):
     i, = Input()
     l = [i]
